@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ລາຍການບັນທຶກ - LogSystem (Premium High Contrast)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao+Looped:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tealMain: 'rgb(0, 150, 136)',
+                        tealDark: 'rgb(0, 121, 107)',
+                        tealDeep: '#004D40', // ສີຂຽວເຂັ້ມພິເສດສຳລັບຕົວໜັງສື
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Noto Sans Lao Looped', sans-serif; background-color: #f0f4f3; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(0, 150, 136); border-radius: 10px; }
+        /* ປັບແຖວໃຫ້ເບິ່ງສະອາດ ແລະ ໂດດເດັ່ນ */
+        .main-row td { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+        .highlight-id { background-color: rgba(0, 150, 136, 0.1); color: #00796B; padding: 2px 8px; border-radius: 6px; font-weight: 800; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="bg-tealMain text-white shadow-lg p-3 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+            <div class="flex items-center gap-8">
+                <h1 class="font-bold text-xl flex items-center tracking-tight">
+                    <i class="fas fa-heartbeat mr-2 text-white"></i> ECHO LOG SYSTEM
+                </h1>
+                <div class="hidden md:flex items-center gap-6 text-sm">
+                    <a href="index.html" class="bg-white/30 px-4 py-2 rounded-xl font-bold flex items-center gap-2">
+                        <i class="fas fa-home"></i> ໜ້າຫຼັກ
+                    </a>
+                  
+                </div>
+            </div>
+            <a href="create.html" class="font-bold bg-white text-tealMain px-5 py-2 rounded-full shadow-md hover:scale-105 transition-transform">
+                <i class="fas fa-plus-circle mr-1"></i> ເພີ່ມບັນທຶກໃໝ່
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 lg:p-6">
+        <div class="bg-white rounded-[2rem] shadow-xl border border-tealMain/10 p-6">
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                <div class="flex items-center">
+                    <div class="p-3 bg-tealMain/10 rounded-2xl mr-4 text-tealMain">
+                        <i class="fas fa-history text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-tealDeep">ປະຫວັດການບັນທຶກທັງໝົດ</h2>
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Medical Examination Logs</p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-44">
+                        <input type="date" id="dateFilter" onchange="filterTable()" 
+                               class="w-full pl-4 pr-4 py-2.5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold text-tealDeep outline-none focus:border-tealMain transition-all shadow-sm">
+                    </div>
+                    <div class="relative flex-1 md:w-72">
+                        <input type="text" id="searchInput" onkeyup="filterTable()" 
+                               class="w-full pl-11 pr-12 py-2.5 bg-gray-50 border-2 border-gray-100 rounded-2xl text-sm font-bold outline-none focus:border-tealMain transition-all shadow-sm" 
+                               placeholder="ຄົ້ນຫາ ຊື່ຄົນເຈັບ ຫຼື ລະຫັດ ID...">
+                        <i class="fas fa-search absolute left-4 top-3.5 text-tealMain"></i>
+                        <button onclick="clearFilters()" class="absolute right-3 top-2.5 p-1 text-gray-300 hover:text-red-500">
+                            <i class="fas fa-times-circle text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-3xl border border-gray-100 shadow-inner bg-gray-50/30">
+                <table class="w-full text-left border-collapse" id="logTable">
+                    <thead class="bg-tealMain/5 text-tealDeep font-black text-xs uppercase tracking-tighter">
+                        <tr>
+                            <th class="p-5 border-b-2 border-tealMain/20">ID Patient</th>
+                            <th class="p-5 border-b-2 border-tealMain/20">ວັນທີກວດ</th>
+                            <th class="p-5 border-b-2 border-tealMain/20">ຊື່ ແລະ ນາມສະກຸນ</th>
+                            <th class="p-5 border-b-2 border-tealMain/20 text-center">ເພດ/ອາຍຸ</th>
+                            <th class="p-5 border-b-2 border-tealMain/20 text-center">ລາຍການກວດ</th>
+                            <th class="p-5 border-b-2 border-tealMain/20">ທ່ານໝໍຜູ່ກວດ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-between items-center mt-6 px-4">
+                <div id="table-info" class="text-xs font-black text-tealDark bg-tealMain/5 px-4 py-2 rounded-full border border-tealMain/10"></div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-gray-400">ສະແດງ:</span>
+                    <select id="rowLimit" onchange="filterTable()" 
+                            class="text-xs font-black border-2 border-gray-100 rounded-xl p-2 outline-none bg-white focus:border-tealMain">
+                        <option value="15">15 ແຖວ</option>
+                        <option value="30">30 ແຖວ</option>
+                        <option value="all">ທັງໝົດ</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sheetId = '1ZovTdV5piuFQi3mx6hdgYyMB4wLX1mQCF7QIbRDD5zk';
+        let allGroupedData = []; 
+
+        async function loadData() {
+            const base = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Log`;
+            try {
+                const res = await fetch(base);
+                const data = await res.text();
+                const jsonData = JSON.parse(data.substring(47).slice(0, -2));
+                const rows = jsonData.table.rows;
+                
+                allGroupedData = [];
+                let currentGroup = null;
+
+                rows.forEach(r => {
+                    const id = r.c[0]?.v;
+                    const name = r.c[2]?.v;
+                    if (name && name.toString().trim() !== "") { 
+                        let rawDate = null;
+                        if (r.c[1]?.v) {
+                            const dateParts = String(r.c[1].v).match(/\d+/g);
+                            if (dateParts && dateParts.length >= 3) {
+                                rawDate = new Date(dateParts[0], dateParts[1], dateParts[2]);
+                            }
+                        }
+                        currentGroup = {
+                            id: id || '',
+                            dateValue: rawDate,
+                            dateStr: r.c[1]?.f || '',
+                            name: name,
+                            genderAge: (r.c[4]?.v || '') + " / " + (r.c[3]?.v || ''),
+                            doctor: r.c[7]?.v || '',
+                            items: []
+                        };
+                        allGroupedData.push(currentGroup);
+                    }
+                    if (currentGroup) {
+                        currentGroup.items.push({
+                            list: r.c[5]?.v || '',
+                            price: r.c[6]?.v || 0,
+                            result: r.c[8]?.v || '' 
+                        });
+                    }
+                });
+                renderTable(allGroupedData);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            const info = document.getElementById('table-info');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-gray-400 font-bold">ບໍ່ພົບຂໍ້ມູນໃນລະບົບ</td></tr>';
+                info.innerText = 'Found 0 items';
+                return;
+            }
+
+            const limit = document.getElementById('rowLimit').value;
+            const displayData = limit === 'all' ? data : data.slice(0, parseInt(limit));
+
+            let html = "";
+            displayData.forEach((group, index) => {
+                html += `
+                    <tr class="main-row hover:bg-white transition-all border-b border-gray-100">
+                        <td class="p-5"><span class="highlight-id">#${group.id}</span></td>
+                        <td class="p-5 text-gray-500 font-bold text-xs">${group.dateStr}</td>
+                        <td class="p-5 text-base font-black text-tealDeep tracking-tight">${group.name}</td>
+                        <td class="p-5 text-center">
+                            <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-[11px] font-black">${group.genderAge}</span>
+                        </td>
+                        <td class="p-5 text-center">
+                            <button onclick="toggleDetails(${index})" class="text-xs font-black text-white bg-tealMain border-2 border-tealMain px-4 py-1.5 rounded-full hover:bg-tealDark shadow-sm transition-all flex items-center mx-auto">
+                                <i class="fas fa-eye mr-2"></i> ${group.items.length} ຢ່າງ
+                            </button>
+                        </td>
+                        <td class="p-5 font-bold text-tealDark"><i class="fas fa-user-md mr-1 opacity-40"></i> ${group.doctor}</td>
+                    </tr>
+                    <tr id="details-${index}" class="hidden bg-white/60">
+                        <td colspan="6" class="p-6">
+                            <div class="bg-white rounded-[1.5rem] border-2 border-tealMain/10 overflow-hidden shadow-lg mx-8">
+                                <table class="w-full text-xs">
+                                    <thead class="bg-tealMain/5 text-tealDeep border-b">
+                                        <tr class="font-black italic">
+                                            <th class="p-4">ລາຍການກວດວິເຄາະ</th>
+                                            <th class="p-4 text-center">ສະຖານະ (Status)</th>
+                                            <th class="p-4 text-right">ລາຄາບໍລິການ</th>
+                                            <th class="p-4 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${group.items.map(item => {
+                                            const isDone = item.result && item.result.toString().trim() !== "";
+                                            return `
+                                            <tr class="border-b border-gray-50 hover:bg-tealMain/5">
+                                                <td class="p-4 font-bold text-gray-600"><i class="fas fa-chevron-right mr-3 text-tealMain"></i>${item.list}</td>
+                                                <td class="p-4 text-center">
+                                                    <span class="px-4 py-1 rounded-full text-[10px] font-black shadow-sm ${isDone ? 'bg-green-500 text-white' : 'bg-orange-400 text-white'}">
+                                                        <i class="fas ${isDone ? 'fa-check-circle' : 'fa-clock'} mr-1"></i> ${isDone ? 'ແປຜົນສຳເລັດ' : 'ລໍຖ້າແປຜົນ'}
+                                                    </span>
+                                                </td>
+                                                <td class="p-4 text-right font-black text-tealDeep">${Number(item.price).toLocaleString()} Kip</td>
+                                                <td class="p-4 text-center">
+                                                    <a href="translate.html?id=${group.id}&name=${encodeURIComponent(group.name)}&item=${encodeURIComponent(item.list)}" 
+                                                       class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border-2 font-black transition-all ${isDone ? 'border-tealMain text-tealMain hover:bg-tealMain hover:text-white' : 'border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white'}">
+                                                       <i class="fas ${isDone ? 'fa-search-plus' : 'fa-edit'}"></i> ${isDone ? 'ເບິ່ງຜົນ' : 'ເລີ່ມແປຜົນ'}
+                                                    </a>
+                                                </td>
+                                            </tr>`;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html;
+            info.innerHTML = `<i class="fas fa-check-circle mr-2"></i> TOTAL FOUND: <b>${data.length} RECORDS</b>`;
+        }
+
+        function toggleDetails(index) {
+            const el = document.getElementById(`details-${index}`);
+            el.classList.toggle('hidden');
+        }
+
+        function filterTable() {
+            const searchText = document.getElementById("searchInput").value.toLowerCase();
+            const searchDate = document.getElementById("dateFilter").value;
+            const filtered = allGroupedData.filter(item => {
+                const matchText = item.name.toLowerCase().includes(searchText) || item.id.toString().includes(searchText);
+                let matchDate = true;
+                if (searchDate && item.dateValue) {
+                    const y = item.dateValue.getFullYear();
+                    const m = String(item.dateValue.getMonth() + 1).padStart(2, '0');
+                    const d = String(item.dateValue.getDate()).padStart(2, '0');
+                    matchDate = (`${y}-${m}-${d}` === searchDate);
+                }
+                return matchText && matchDate;
+            });
+            renderTable(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById("searchInput").value = "";
+            document.getElementById("dateFilter").value = "";
+            renderTable(allGroupedData);
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>

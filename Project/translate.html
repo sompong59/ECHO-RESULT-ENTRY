@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ບັນທຶກຜົນກວດ - ECHO SYSTEM (High Contrast)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao+Looped:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mintPrimary: '#9BE3DE',
+                        mintSecondary: '#BEEBE9',
+                        tealMain: 'rgb(0, 150, 136)',
+                        tealDark: 'rgb(0, 121, 107)',
+                        tealDeep: '#004D40', // ສີເຂັ້ມພິເສດສຳລັບຕົວໜັງສື
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Noto Sans Lao Looped', sans-serif; background-color: #f1f5f9; color: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(0, 150, 136); border-radius: 10px; }
+        /* ປັບ Contrast ໃຫ້ກັບ Input */
+        .high-contrast-focus:focus { border-color: #004D40; ring-color: rgba(0, 77, 64, 0.15); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <nav class="bg-tealMain text-white shadow-lg p-3 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+            <div class="flex items-center gap-8">
+                <h1 class="font-bold text-xl flex items-center tracking-tight">
+                    <i class="fas fa-file-medical-alt mr-2 text-mintPrimary"></i> ECHO RESULT ENTRY
+                </h1>
+                <div class="hidden md:flex items-center gap-6 text-sm">
+                    <a href="index.html" class="bg-white/30 px-4 py-2 rounded-xl font-bold flex items-center gap-2">
+                        <i class="fas fa-home"></i> ໜ້າຫຼັກ
+                    </a>
+                  
+                </div>
+            </div>
+            <span class="text-[10px] font-black bg-tealDeep/30 px-4 py-1.5 rounded-full border border-white/20 uppercase tracking-widest">Medical Records Database</span>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto w-full p-4 lg:p-6 flex-1 flex flex-col gap-6 relative">
+        <div id="loader" class="absolute inset-0 bg-white/90 z-20 hidden flex-col items-center justify-center rounded-[2.5rem]">
+            <div class="animate-spin rounded-full h-14 w-14 border-4 border-tealDeep border-t-transparent"></div>
+            <p class="mt-4 font-black text-tealDeep tracking-widest text-sm uppercase">ກຳລັງດຶງຂໍ້ມູນ...</p>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 p-6 lg:p-10 flex flex-col gap-8">
+            
+            <div class="bg-slate-50 border-2 border-slate-100 rounded-[2rem] p-6 grid grid-cols-1 md:grid-cols-4 gap-6 shadow-inner">
+                <div class="md:border-r-2 border-slate-200 pr-4">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Patient ID</span>
+                    <p id="patientId" class="text-tealMain font-black text-2xl tracking-tighter">#0000</p>
+                </div>
+                <div class="md:border-r-2 border-slate-200 pr-4">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Full Name</span>
+                    <p id="patientName" class="text-tealDeep font-black text-lg truncate uppercase tracking-tight">-</p>
+                </div>
+                <div class="md:border-r-2 border-slate-200 pr-4 text-center md:text-left">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Gender / Age</span>
+                    <p id="patientMeta" class="text-slate-800 font-black text-lg">- / -</p>
+                </div>
+                <div class="text-center md:text-left">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Contact</span>
+                    <p id="patientPhone" class="text-slate-800 font-black text-lg">-</p>
+                </div>
+                <div class="col-span-1 md:col-span-2 pt-4 mt-2 border-t-2 border-slate-200/50">
+                    <span class="text-[10px] font-black text-tealMain uppercase tracking-widest">Permanent Address</span>
+                    <p id="patientAddress" class="text-slate-600 font-bold text-sm leading-relaxed">-</p>
+                </div>
+                <div class="col-span-1 md:col-span-2 pt-4 mt-2 border-t-2 border-slate-200/50">
+                    <span class="text-[10px] font-black text-tealMain uppercase tracking-widest">Active Examination</span>
+                    <p id="itemName" class="text-tealDark font-black text-base italic underline decoration-mintPrimary decoration-4">-</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <div class="bg-[#e0f2f1] border-2 border-tealMain/30 rounded-[1.8rem] p-6 shadow-sm">
+                    <label class="block text-[11px] font-black text-tealDeep uppercase mb-3 tracking-widest flex items-center">
+                        <i class="fas fa-stethoscope mr-2 text-tealMain text-lg"></i> 
+                        <span class="text-[10px] font-black text-tealMain uppercase tracking-widest">ມະຕິພະຍາດ (Diagnosis)</span>
+                    </label>
+                    <textarea id="diagnosisText" rows="2" 
+                        class="w-full bg-white border-2 border-slate-200 rounded-xl p-4 text-sm font-black text-tealDeep focus:border-tealDeep focus:ring-4 focus:ring-tealDeep/5 outline-none transition-all placeholder:text-slate-300 shadow-inner"
+                        placeholder="ລະບຸຊື່ພະຍາດ ຫຼື ອາການສະຫຼຸບຢູ່ນີ້..."></textarea>
+                </div>
+
+                <div class="flex flex-col gap-3 px-2">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center ml-2">
+                        <i class="fas fa-edit mr-2 text-tealMain text-lg"></i> ລາຍລະອຽດຜົນກວດ ແລະ ຄຳແນະນຳ
+                    </label>
+                    <textarea id="resultText" rows="12" 
+                        class="w-full bg-white border-2 border-slate-200 rounded-[2rem] p-8 text-sm font-bold text-slate-700 leading-relaxed focus:border-tealMain focus:ring-4 focus:ring-tealMain/5 outline-none transition-all custom-scrollbar shadow-sm"
+                        placeholder="ພິມລາຍລະອຽດຜົນການກວດທີ່ນີ້..."></textarea>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t-2 border-slate-100">
+                <a href="index.html" class="flex items-center justify-center px-8 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-600 font-black rounded-2xl transition-all active:scale-95 group shadow-sm">
+                    <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i> ຍົກເລີກ / ກັບຄືນ
+                </a>
+                
+                <div class="flex gap-4 w-full md:w-auto">
+                    <button onclick="goToPrint()" id="btnPrint" style="display:none;" 
+                        class="flex-1 md:flex-none flex items-center justify-center px-10 py-4 bg-tealDark hover:bg-tealDeep text-white font-black rounded-2xl shadow-lg shadow-tealDark/20 transition-all active:scale-95">
+                        <i class="fas fa-print mr-3 text-lg"></i> ພິມລາຍງານ
+                    </button>
+                    
+                    <button onclick="saveToGoogleSheet()" id="btnSave" 
+                        class="flex-1 md:flex-none flex items-center justify-center px-14 py-4 bg-tealDeep hover:bg-black text-white font-black text-lg rounded-2xl shadow-xl shadow-tealDeep/20 transition-all active:scale-95 uppercase tracking-tighter">
+                        <i class="fas fa-save mr-3 text-xl text-mintPrimary"></i> ບັນທຶກຂໍ້ມູນທັງໝົດ
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const sheetId = '1ZovTdV5piuFQi3mx6hdgYyMB4wLX1mQCF7QIbRDD5zk';
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwi40SYZ6JyoMpqIUEx3FchSt5efFixh62JGEEj5CpaGydwRkntsWhC7dVYDjcGZZXBw/exec"; 
+
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const rawName = params.get('name');
+        const rawItem = params.get('item');
+        const decodedItem = decodeURIComponent(rawItem);
+
+        let currentVillage = "", currentDistrict = "", currentProvince = "", currentPhone = "";
+        let currentAge = "", currentGender = "", currentDoctor = "";
+
+        function fetchExistingResult() {
+            const loader = document.getElementById('loader');
+            const btnSave = document.getElementById('btnSave');
+            const btnPrint = document.getElementById('btnPrint');
+            
+            loader.style.display = 'flex';
+            const base = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Log`;
+            
+            fetch(base)
+                .then(res => res.text())
+                .then(data => {
+                    const jsonData = JSON.parse(data.substring(47).slice(0, -2));
+                    const rows = jsonData.table.rows;
+                    const match = rows.find(r => r.c[0]?.v?.toString() === id && r.c[5]?.v?.toString() === decodedItem);
+
+                    if (match) {
+                        document.getElementById('patientId').innerText = id;
+                        document.getElementById('patientName').innerText = match.c[2]?.v || decodeURIComponent(rawName);
+                        currentAge = match.c[3]?.v || "-";
+                        currentGender = match.c[4]?.v || "-";
+                        document.getElementById('patientMeta').innerText = `${currentGender} / ${currentAge}`;
+                        currentDoctor = match.c[7]?.v || "";
+                        currentVillage = match.c[10]?.v || "";
+                        currentDistrict = match.c[11]?.v || "";
+                        currentProvince = match.c[12]?.v || "";
+                        currentPhone = match.c[13]?.v || "-";
+                        document.getElementById('patientPhone').innerText = currentPhone;
+                        document.getElementById('patientAddress').innerText = (currentVillage || currentDistrict || currentProvince) 
+                            ? `${currentVillage}, ${currentDistrict}, ${currentProvince}` : '-';
+                        document.getElementById('itemName').innerText = decodedItem;
+                        document.getElementById('resultText').value = match.c[8]?.v || "";
+                        document.getElementById('diagnosisText').value = match.c[9]?.v || "";
+                        btnSave.innerHTML = '<i class="fas fa-edit mr-2"></i> ອັບເດດຂໍ້ມູນ';
+                        btnPrint.style.display = 'flex';
+                    }
+                    loader.style.display = 'none';
+                })
+                .catch(err => {
+                    console.error("Fetch Error:", err);
+                    loader.style.display = 'none';
+                });
+        }
+
+        async function saveToGoogleSheet() {
+            const result = document.getElementById('resultText').value;
+            const diagnosis = document.getElementById('diagnosisText').value;
+            const btnSave = document.getElementById('btnSave');
+
+            if(!id) return Swal.fire('Error', 'ບໍ່ພົບ ID ຄົນເຈັບ', 'error');
+            
+            btnSave.disabled = true;
+            Swal.fire({ title: 'ກຳລັງບັນທຶກ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: "save_result",
+                        id: id,
+                        itemName: decodedItem,
+                        result: result,
+                        diagnosis: diagnosis
+                    })
+                });
+                
+                Swal.fire({ icon: 'success', title: 'ບັນທຶກສຳເລັດ!', timer: 1500, showConfirmButton: false });
+                btnSave.disabled = false;
+                document.getElementById('btnPrint').style.display = 'flex';
+            } catch (e) {
+                Swal.fire('Error', 'ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກ', 'error');
+                btnSave.disabled = false;
+            }
+        }
+
+        function goToPrint() {
+            const res = encodeURIComponent(document.getElementById('resultText').value);
+            const dia = encodeURIComponent(document.getElementById('diagnosisText').value);
+            const name = encodeURIComponent(document.getElementById('patientName').innerText);
+            const url = `print.html?id=${id}&name=${name}&age=${currentAge}&gender=${encodeURIComponent(currentGender)}&item=${rawItem}&result=${res}&diag=${dia}&doctor=${encodeURIComponent(currentDoctor)}&village=${encodeURIComponent(currentVillage)}&district=${encodeURIComponent(currentDistrict)}&province=${encodeURIComponent(currentProvince)}&phone=${encodeURIComponent(currentPhone)}`;
+            window.open(url, '_blank');
+        }
+
+        window.onload = fetchExistingResult;
+    </script>
+</body>
+</html>
