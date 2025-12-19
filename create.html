@@ -64,15 +64,23 @@
                         <i class="fas fa-id-card mr-2"></i> ຂໍ້ມູນຄົນເຈັບ (Patient Information)
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                        <div class="md:col-span-2">
-                            <label class="block text-[11px] font-bold text-gray-500 mb-1">ID PATIENT</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-tealMain">
-                                    <i id="searchIcon" class="fas fa-search text-xs"></i>
-                                </span>
-                                <input type="text" id="c_id" oninput="handleIdSearch(this.value)" class="compact-input block w-full pl-9 border border-tealMain/30 focus:ring-2 focus:ring-tealMain outline-none font-bold text-tealDark bg-tealLight/20" placeholder="P0000">
-                            </div>
-                        </div>
+                       <div class="md:col-span-2">
+    <label class="block text-[11px] font-bold text-gray-500 mb-1 uppercase">ID PATIENT & SEARCH</label>
+    <div class="relative group">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-tealMain">
+            <i id="searchIcon" class="fas fa-search text-xs"></i>
+        </span>
+
+        <input type="text" id="c_id" oninput="handleIdSearch(this.value)" 
+            class="compact-input block w-full pl-9 pr-10 border border-tealMain/30 focus:ring-2 focus:ring-tealMain outline-none font-bold text-tealDark bg-tealLight/20 shadow-inner" 
+            placeholder="P0000">
+
+        <button type="button" onclick="clearSearch()" 
+            class="absolute right-2 top-1.5 text-gray-400 hover:text-red-500 transition-colors focus:outline-none">
+            <i class="fas fa-times-circle text-lg"></i>
+        </button>
+    </div>
+</div>
                         <div class="md:col-span-2">
                             <label class="block text-[11px] font-bold text-gray-500 mb-1">DATE</label>
                             <input type="text" id="c_date" readonly class="compact-input block w-full bg-gray-50 border border-gray-200 text-gray-600 outline-none">
@@ -119,9 +127,10 @@
                         </span>
                         <select id="c_doctor" class="compact-input block w-full pl-9 border border-gray-200 focus:ring-2 focus:ring-tealMain focus:border-tealMain outline-none shadow-sm font-semibold appearance-none bg-white text-tealDark cursor-pointer">
                             <option value="">-- ເລືອກທ່ານໝໍ --</option>
-                            <option value="Dr. Somchai">Dr. Somchai</option>
-                            <option value="Dr. Keo">Dr. Keo</option>
-                            <option value="Dr. Anousone">Dr. Anousone</option>
+                            <option value="Dr. Somchai">ດຣ ວິລະສັກ ຣາຊໂພ</option>
+                            <option value="Dr. Keo">ດຣ ພວງມະໄລ ສານທະຈັກ</option>
+                            <option value="Dr. Anousone">ດຣ ລັດດາວອນ ດວງພູມີ</option>
+                            <option value="Dr. Anousone">ດຣ ວຽງເພັດ ຢາທໍຕູ້</option>
                         </select>
                         <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-tealMain pointer-events-none">
                             <i class="fas fa-chevron-down text-xs"></i>
@@ -167,131 +176,144 @@
         </div>
     </div>
 
-    <script>
-        const webAppUrl = 'https://script.google.com/macros/s/AKfycbwwi40SYZ6JyoMpqIUEx3FchSt5efFixh62JGEEj5CpaGydwRkntsWhC7dVYDjcGZZXBw/exec'; 
-        let priceListData = [];
-        let selectedItems = [];
-        let searchTimeout;
+  <script>
+    const webAppUrl = 'https://script.google.com/macros/s/AKfycbwwi40SYZ6JyoMpqIUEx3FchSt5efFixh62JGEEj5CpaGydwRkntsWhC7dVYDjcGZZXBw/exec'; 
+    let priceListData = [];
+    let selectedItems = [];
+    let searchTimeout;
 
-        async function initialize() {
-            document.getElementById('c_date').value = new Date().toLocaleDateString('lo-LA');
-            const cachedData = localStorage.getItem('priceListCache');
-            if (cachedData) {
-                priceListData = JSON.parse(cachedData);
-                renderGrid(priceListData);
-            }
-            fetchExamData();
+    async function initialize() {
+        // ກຳນົດຮູບແບບວັນທີໃຫ້ເປັນ DD/MM/YYYY
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        document.getElementById('c_date').value = `${day}/${month}/${year}`;
+
+        const cachedData = localStorage.getItem('priceListCache');
+        if (cachedData) {
+            priceListData = JSON.parse(cachedData);
+            renderGrid(priceListData);
         }
+        fetchExamData();
+    }
 
-        async function fetchExamData() {
+    async function fetchExamData() {
+        try {
+            const resp = await fetch(webAppUrl);
+            priceListData = await resp.json();
+            localStorage.setItem('priceListCache', JSON.stringify(priceListData));
+            renderGrid(priceListData);
+        } catch (e) { console.error(e); }
+    }
+
+    function handleIdSearch(id) {
+        clearTimeout(searchTimeout);
+        const icon = document.getElementById('searchIcon');
+        if (!id.trim()) { clearFields(); icon.className = "fas fa-search text-xs"; return; }
+        icon.className = "fas fa-spinner fa-spin text-xs";
+        searchTimeout = setTimeout(async () => {
             try {
-                const resp = await fetch(webAppUrl);
-                priceListData = await resp.json();
-                localStorage.setItem('priceListCache', JSON.stringify(priceListData));
-                renderGrid(priceListData);
+                const response = await fetch(`${webAppUrl}?id=${id.trim()}`);
+                const data = await response.json();
+                if (data.found) {
+                    ['name', 'age', 'gender', 'village', 'district', 'province', 'phone'].forEach(f => {
+                        document.getElementById(`c_${f}`).value = data[f] || '';
+                    });
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'success',
+                        title: `ດຶງຂໍ້ມູນ: ${data.name}`, showConfirmButton: false, timer: 1500
+                    });
+                } else { clearFields(); }
             } catch (e) { console.error(e); }
-        }
+            icon.className = "fas fa-search text-xs";
+        }, 600);
+    }
 
-        function handleIdSearch(id) {
-            clearTimeout(searchTimeout);
-            const icon = document.getElementById('searchIcon');
-            if (!id.trim()) { clearFields(); icon.className = "fas fa-search text-xs"; return; }
-            icon.className = "fas fa-spinner fa-spin text-xs";
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const response = await fetch(`${webAppUrl}?id=${id.trim()}`);
-                    const data = await response.json();
-                    if (data.found) {
-                        ['name', 'age', 'gender', 'village', 'district', 'province', 'phone'].forEach(f => {
-                            document.getElementById(`c_${f}`).value = data[f] || '';
-                        });
-                        Swal.fire({
-                            toast: true, position: 'top-end', icon: 'success',
-                            title: `ດຶງຂໍ້ມູນ: ${data.name}`, showConfirmButton: false, timer: 1500
-                        });
-                    } else { clearFields(); }
-                } catch (e) { console.error(e); }
-                icon.className = "fas fa-search text-xs";
-            }, 600);
-        }
+    // --- ເພີ່ມຟັງຊັນລຶບການຄົ້ນຫາ (Clear Search) ---
+    function clearSearch() {
+        document.getElementById('c_id').value = '';
+        clearFields();
+        document.getElementById('searchIcon').className = "fas fa-search text-xs";
+    }
 
-        function clearFields() {
-            ['c_name', 'c_age', 'c_gender', 'c_village', 'c_district', 'c_province', 'c_phone'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.value = '';
-            });
-        }
+    function clearFields() {
+        ['c_name', 'c_age', 'c_gender', 'c_village', 'c_district', 'c_province', 'c_phone'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = '';
+        });
+    }
 
-        function renderGrid(data) {
-            const html = data.map(item => {
-                const isSelected = selectedItems.some(i => i.type === item.type);
-                return `
-                    <div onclick="toggleItem('${item.type}', ${item.price}, this)" 
-                         class="cursor-pointer border-2 p-3 rounded-xl flex justify-between items-center transition-all ${isSelected ? 'border-tealMain bg-tealLight' : 'border-gray-50 bg-white hover:border-tealMain/30 shadow-sm'}">
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 border-2 rounded mr-3 flex items-center justify-center transition-colors ${isSelected ? 'bg-tealMain border-tealMain' : 'border-gray-300'}">
-                                ${isSelected ? '<i class="fas fa-check text-[8px] text-white"></i>' : ''}
-                            </div>
-                            <span class="text-xs ${isSelected ? 'text-tealDark font-bold' : 'text-gray-700 font-semibold'}">${item.type}</span>
+    function renderGrid(data) {
+        const html = data.map(item => {
+            const isSelected = selectedItems.some(i => i.type === item.type);
+            return `
+                <div onclick="toggleItem('${item.type}', ${item.price}, this)" 
+                     class="cursor-pointer border-2 p-3 rounded-xl flex justify-between items-center transition-all ${isSelected ? 'border-tealMain bg-tealLight' : 'border-gray-50 bg-white hover:border-tealMain/30 shadow-sm'}">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 border-2 rounded mr-3 flex items-center justify-center transition-colors ${isSelected ? 'bg-tealMain border-tealMain' : 'border-gray-300'}">
+                            ${isSelected ? '<i class="fas fa-check text-[8px] text-white"></i>' : ''}
                         </div>
-                        <span class="text-xs font-black text-tealMain">${Number(item.price).toLocaleString()}</span>
-                    </div>`;
-            }).join('');
-            document.getElementById('priceGrid').innerHTML = html || '<div class="col-span-3 text-center text-gray-400 text-xs py-10">ບໍ່ພົບລາຍການ</div>';
+                        <span class="text-xs ${isSelected ? 'text-tealDark font-bold' : 'text-gray-700 font-semibold'}">${item.type}</span>
+                    </div>
+                    <span class="text-xs font-black text-tealMain">${Number(item.price).toLocaleString()}</span>
+                </div>`;
+        }).join('');
+        document.getElementById('priceGrid').innerHTML = html || '<div class="col-span-3 text-center text-gray-400 text-xs py-10">ບໍ່ພົບລາຍການ</div>';
+    }
+
+    function toggleItem(type, price, element) {
+        const idx = selectedItems.findIndex(i => i.type === type);
+        if(idx > -1) { selectedItems.splice(idx, 1); } 
+        else { selectedItems.push({type, price}); }
+        const q = document.getElementById('gridSearch').value.toLowerCase();
+        renderGrid(priceListData.filter(i => i.type.toLowerCase().includes(q)));
+        updateTotal();
+    }
+
+    function updateTotal() {
+        const total = selectedItems.reduce((sum, i) => sum + i.price, 0);
+        document.getElementById('totalDisplay').innerText = `${total.toLocaleString()} Kip`;
+    }
+
+    function filterGrid() {
+        const q = document.getElementById('gridSearch').value.toLowerCase();
+        renderGrid(priceListData.filter(i => i.type.toLowerCase().includes(q)));
+    }
+
+    async function saveData() {
+        if(!document.getElementById('c_name').value) return Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາຄົ້ນຫາ ID ຄົນເຈັບກ່ອນ', 'warning');
+        if(!document.getElementById('c_doctor').value) return Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາເລືອກທ່ານໝໍ', 'warning');
+        if(selectedItems.length === 0) return Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາເລືອກລາຍການກວດ', 'warning');
+
+        const btn = document.getElementById('btnSave');
+        btn.disabled = true;
+        Swal.fire({ title: 'ກຳລັງບັນທຶກ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        const payload = {
+            action: 'add',
+            id: document.getElementById('c_id').value,
+            date: document.getElementById('c_date').value,
+            name: document.getElementById('c_name').value,
+            age: document.getElementById('c_age').value,
+            gender: document.getElementById('c_gender').value,
+            village: document.getElementById('c_village').value,
+            district: document.getElementById('c_district').value,
+            province: document.getElementById('c_province').value,
+            phone: document.getElementById('c_phone').value,
+            doctor: document.getElementById('c_doctor').value,
+            items: selectedItems.map(i => ({ list: i.type, price: i.price }))
+        };
+
+        try {
+            await fetch(webAppUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            Swal.fire({ icon: 'success', title: 'ບັນທຶກຂໍ້ມູນສຳເລັດ', timer: 1500 }).then(() => window.location.href = 'index.html');
+        } catch (e) { 
+            Swal.fire('Error', 'ເກີດຂໍ້ຜິດພາດ', 'error'); 
+            btn.disabled = false;
         }
-
-        function toggleItem(type, price, element) {
-            const idx = selectedItems.findIndex(i => i.type === type);
-            if(idx > -1) { selectedItems.splice(idx, 1); } 
-            else { selectedItems.push({type, price}); }
-            const q = document.getElementById('gridSearch').value.toLowerCase();
-            renderGrid(priceListData.filter(i => i.type.toLowerCase().includes(q)));
-            updateTotal();
-        }
-
-        function updateTotal() {
-            const total = selectedItems.reduce((sum, i) => sum + i.price, 0);
-            document.getElementById('totalDisplay').innerText = `${total.toLocaleString()} Kip`;
-        }
-
-        function filterGrid() {
-            const q = document.getElementById('gridSearch').value.toLowerCase();
-            renderGrid(priceListData.filter(i => i.type.toLowerCase().includes(q)));
-        }
-
-        async function saveData() {
-            if(!document.getElementById('c_name').value) return Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາຄົ້ນຫາ ID ຄົນເຈັບກ່ອນ', 'warning');
-            if(!document.getElementById('c_doctor').value) return Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາເລືອກທ່ານໝໍ', 'warning');
-            if(selectedItems.length === 0) return Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາເລືອກລາຍການກວດ', 'warning');
-
-            const btn = document.getElementById('btnSave');
-            btn.disabled = true;
-            Swal.fire({ title: 'ກຳລັງບັນທຶກ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-            const payload = {
-                action: 'add',
-                id: document.getElementById('c_id').value,
-                date: document.getElementById('c_date').value,
-                name: document.getElementById('c_name').value,
-                age: document.getElementById('c_age').value,
-                gender: document.getElementById('c_gender').value,
-                village: document.getElementById('c_village').value,
-                district: document.getElementById('c_district').value,
-                province: document.getElementById('c_province').value,
-                phone: document.getElementById('c_phone').value,
-                doctor: document.getElementById('c_doctor').value,
-                items: selectedItems.map(i => ({ list: i.type, price: i.price }))
-            };
-
-            try {
-                await fetch(webAppUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                Swal.fire({ icon: 'success', title: 'ບັນທຶກຂໍ້ມູນສຳເລັດ', timer: 1500 }).then(() => window.location.href = 'index.html');
-            } catch (e) { 
-                Swal.fire('Error', 'ເກີດຂໍ້ຜິດພາດ', 'error'); 
-                btn.disabled = false;
-            }
-        }
-        window.onload = initialize;
-    </script>
+    }
+    window.onload = initialize;
+</script>
 </body>
 </html>
