@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ໃບລາຍງານຜົນກວດ - ໂຮງໝໍ ຫຼັກໄຊ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ຕັ້ງຄ່າ Font: ໃຫ້ Times New Roman ຂຶ້ນກ່ອນເພື່ອຈັດການຕົວເລກ ແລະ ອັງກິດ, ຕາມດ້ວຍ Phetsarath OT ສຳລັບພາສາລາວ */
+        :root {
+            --primary-font: 'Times New Roman', "Phetsarath OT", serif;
+        }
+
+        @page { size: A4; margin: 0; }
+        
+        body { 
+            font-family: var(--primary-font); 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f0f0f0; 
+            color: #000; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 15mm 20mm 25mm 20mm;
+            margin: 10mm auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* --- Header --- */
+        .header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 10px; }
+        .logo { width: 100px; margin-right: 20px; }
+        .hospital-info { flex-grow: 1; }
+        .hospital-name-la { font-size: 26px; font-weight: bold; margin: 0; font-family: "Phetsarath OT", serif; }
+        .hospital-addr { font-size: 15px; margin-top: 5px; line-height: 1.4; }
+
+        /* --- Meta Info (ID & Date) --- */
+        .meta-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        /* --- Body Content --- */
+        .content { flex-grow: 1; }
+        .report-title { text-align: center; font-size: 22px; font-weight: bold; margin: 5px 0 15px 0;  }
+        
+        .patient-info-section { 
+            font-size: 15px; 
+            line-height: 1.8; 
+            margin-bottom: 15px; 
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        .info-line { margin-bottom: 5px; }
+        .p-label { font-weight: bold; }
+
+        /* --- Diagnosis --- */
+        .diagnosis-inline { 
+            margin-bottom: 15px; 
+            font-size: 16px; 
+            display: flex; 
+            align-items: baseline;
+            gap: 10px;
+        }
+        .diag-label { font-weight: bold; white-space: nowrap;  }
+        .diag-value {  flex-grow: 1; }
+
+        /* --- Laboratory Result Box --- */
+        .result-container { 
+            border: 1px solid #000; 
+            border-radius: 8px; 
+            padding: 20px; 
+            min-height: 350px; 
+        }
+        .result-header { 
+            font-weight: bold; 
+            font-size: 18px; 
+            display: block; 
+            margin-bottom: 13px; 
+            text-align: center; 
+            text-decoration: underline;
+            padding-bottom: 5px;
+        }
+        .result-text { white-space: pre-wrap; line-height: 1.8; font-size: 16px;color: #000; }
+
+        /* --- ສ່ວນລາຍເຊັນ --- */
+        .signature-section { display: flex; justify-content: space-around; margin-top: 20px; padding: 0 10px; }
+        .sig-box { text-align: center; width: 250px; display: flex; flex-direction: column; align-items: center; }
+        /* .sig-space { height: 60px; } */
+        .sig-line { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+        .doctor-display {  font-size: 15px; }
+
+        /* --- Footer --- */
+        .footer {
+            border-top: 1px solid #000;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
+            position: absolute;
+            bottom: 8mm; 
+            left: 20mm;
+            right: 20mm;
+        }
+        .footer-item { display: flex; align-items: center; gap: 5px; }
+
+        @media print {
+            body { background: none; }
+            .page { margin: 0; box-shadow: none; border: none; }
+            .no-print { display: none; }
+        }
+        
+        .no-print { text-align: center; padding: 20px; background: #333; position: sticky; top: 0; z-index: 100; }
+        .btn-print { background: #000; color: white; border: 1px solid #fff; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button class="btn-print" onclick="window.print()">
+        <i class="fas fa-print me-2"></i> ຢືນຢັນການພິມ (Print Report)
+    </button>
+</div>
+
+<div class="page">
+    <div class="header">
+        <img src="logo/logo.png" alt="Logo" class="logo"> 
+        <div class="hospital-info">
+            <h1 class="hospital-name-la">ໂຮງໝໍ ຫຼັກໄຊ</h1>
+            <div class="hospital-addr">
+                ຖະໜົນ: ໄກສອນ ພົມວິຫານ ບ້ານ ຊ້າງຄູ້, ເມືອງ ໄຊທານີ, ນະຄອນຫຼວງວຽງຈັນ.<br>
+                Avenue Kaysone Phomvihane Xangkhu Village Xaythany District Vientiane Capital
+            </div>
+        </div>
+    </div>
+
+    <div class="meta-info">
+        <div><strong>ລະຫັດ (ID):</strong> <span id="pId"></span></div>
+        <div><strong>ວັນທີ (Date):</strong> <span id="pDate"></span></div>
+    </div>
+
+    <div class="content">
+        <div class="report-title">ຜົນກວດ</div>
+
+        <div class="patient-info-section">
+            <div class="info-line">
+                <span class="p-label">ຊື່ ແລະ ນາມສະກຸນ:</span> <span id="pName"></span> 
+                <span class="p-label" style="margin-left: 15px;">ເພດ:</span> <span id="pGender"></span>
+                <span class="p-label" style="margin-left: 15px;">ອາຍຸ:</span> <span id="pAge"></span> ປີ
+            </div>
+            <div class="info-line">
+                <span class="p-label">ທີ່ຢູ່:</span> ບ້ານ: <span id="pVillage"></span>, ເມືອງ: <span id="pDistrict"></span>, ແຂວງ: <span id="pProvince"></span> 
+                <span class="p-label" style="margin-left: 15px;">ເບີໂທ:</span> <span id="pPhone"></span>
+            </div>
+            <div class="info-line">
+                <span class="p-label">ລາຍການກວດ:</span> <span id="pItem"></span>
+            </div>
+        </div>
+
+        <div class="diagnosis-inline">
+            <span class="diag-label">ມະຕິພະຍາດ (Diagnosis):</span>
+            <span id="pDiag" class="diag-value">ກຳລັງໂຫຼດ...</span>
+        </div>
+
+        <div class="result-container">
+            <div class="result-header">Whole Abdominal Ultrasound</div>
+            <div id="pResult" class="result-text">ກຳລັງໂຫຼດຂໍ້ມູນ...</div>
+        </div>
+
+        <div class="signature-section">
+            <div class="sig-box">
+                <div class="sig-space"></div>
+                <div class="sig-line">ລາຍເຊັນທ່ານໝໍສະເໜີ</div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-space"></div>
+                <div class="sig-line">ລາຍເຊັນທ່ານໝໍຜູ້ກວດ</div>
+                <div class="doctor-display"><span id="pDoctor"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-item"><i class="fas fa-phone-alt"></i> 020 22 298 723</div>
+        <div class="footer-item"><i class="fas fa-globe"></i> www.luckxayhospital.la</div>
+        <div class="footer-item"><i class="fas fa-envelope"></i> info.luckxayhospital@gmail.com</div>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById('pId').innerText = params.get('id') || '-';
+    document.getElementById('pName').innerText = decodeURIComponent(params.get('name') || 'ບໍ່ລະບຸຊື່');
+    document.getElementById('pGender').innerText = decodeURIComponent(params.get('gender') || '-');
+    document.getElementById('pAge').innerText = params.get('age') || '-';
+    document.getElementById('pItem').innerText = decodeURIComponent(params.get('item') || 'ບໍ່ພົບລາຍການ');
+    document.getElementById('pResult').innerText = decodeURIComponent(params.get('result') || '-');
+    document.getElementById('pDiag').innerText = decodeURIComponent(params.get('diag') || '-');
+    document.getElementById('pDoctor').innerText = decodeURIComponent(params.get('doctor') || '');
+    
+    document.getElementById('pVillage').innerText = decodeURIComponent(params.get('village') || '...');
+    document.getElementById('pDistrict').innerText = decodeURIComponent(params.get('district') || '...');
+    document.getElementById('pProvince').innerText = decodeURIComponent(params.get('province') || '...');
+    document.getElementById('pPhone').innerText = decodeURIComponent(params.get('phone') || '-');
+
+    const today = new Date();
+    // ຕົວເລກໃນວັນທີຈະເປັນ Times New Roman ອັດຕະໂນມັດ ຍ້ອນການຕັ້ງຄ່າ Font-family
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('pDate').innerText = today.toLocaleDateString('lo-LA', options);
+</script>
+
+</body>
+</html>
